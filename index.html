@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora 3D</title>
 
   <style>
+
     *{
       margin:0;
       padding:0;
@@ -20,7 +21,7 @@
     }
 
     .container{
-      max-width:700px;
+      max-width:800px;
       margin:auto;
       background:#1a1d24;
       padding:25px;
@@ -30,12 +31,12 @@
 
     h1{
       text-align:center;
-      margin-bottom:25px;
+      margin-bottom:30px;
       color:#00c3ff;
     }
 
     h2{
-      margin:20px 0 10px;
+      margin:25px 0 15px;
       color:#00c3ff;
     }
 
@@ -45,7 +46,7 @@
 
     label{
       display:block;
-      margin-bottom:5px;
+      margin-bottom:6px;
       font-size:14px;
     }
 
@@ -100,7 +101,51 @@
       margin-top:10px;
     }
 
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+    }
+
+    th, td{
+      border-bottom:1px solid #444;
+      padding:12px;
+      text-align:left;
+    }
+
+    th{
+      color:#00c3ff;
+    }
+
+    .btn-excluir{
+      background:#ff4444;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .btn-limpar{
+      background:#ff4444;
+      color:white;
+      margin-top:20px;
+    }
+
+    @media(max-width:700px){
+
+      table{
+        font-size:12px;
+      }
+
+      .final{
+        font-size:18px;
+      }
+
+    }
+
   </style>
+
 </head>
 <body>
 
@@ -161,9 +206,89 @@
 
     <div class="resultado" id="resultado" style="display:none;"></div>
 
+    <h2>📋 Controle de Peças</h2>
+
+    <div class="resultado">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Peça</th>
+            <th>Custo</th>
+            <th>Venda</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+
+        <tbody id="tabela"></tbody>
+
+      </table>
+
+      <button class="btn-limpar" onclick="limparMemoria()">
+        Limpar Todas as Peças
+      </button>
+
+    </div>
+
   </div>
 
   <script>
+
+    let memoria = JSON.parse(localStorage.getItem('pecas3d')) || [];
+
+    function salvarMemoria(){
+      localStorage.setItem('pecas3d', JSON.stringify(memoria));
+    }
+
+    function atualizarTabela(){
+
+      const tabela = document.getElementById('tabela');
+
+      tabela.innerHTML = '';
+
+      memoria.forEach((peca, index) => {
+
+        tabela.innerHTML += `
+          <tr>
+            <td>${peca.nome}</td>
+            <td>R$ ${peca.total.toFixed(2)}</td>
+            <td>R$ ${peca.venda.toFixed(2)}</td>
+            <td>
+              <button class="btn-excluir" onclick="removerPeca(${index})">
+                Excluir
+              </button>
+            </td>
+          </tr>
+        `;
+
+      });
+
+    }
+
+    function removerPeca(index){
+
+      memoria.splice(index,1);
+
+      salvarMemoria();
+
+      atualizarTabela();
+
+    }
+
+    function limparMemoria(){
+
+      if(confirm('Deseja apagar todas as peças?')){
+
+        memoria = [];
+
+        salvarMemoria();
+
+        atualizarTabela();
+
+      }
+
+    }
 
     function calcular(){
 
@@ -184,15 +309,16 @@
 
       const energia = (watts / 1000) * tempo * kwh;
 
-      const deprec = tempo * depreciacao;
+      const desgaste = tempo * depreciacao;
 
-      const total = material + energia + deprec + extra;
+      const total = material + energia + desgaste + extra;
 
-      const valorVenda = total + (total * (lucro / 100));
+      const venda = total + (total * (lucro / 100));
 
       document.getElementById('resultado').style.display = 'block';
 
       document.getElementById('resultado').innerHTML = `
+
         <h2>Resultado</h2>
 
         <p><strong>Peça:</strong> ${nome}</p>
@@ -201,7 +327,7 @@
 
         <p>⚡ Energia: <span class="valor">R$ ${energia.toFixed(2)}</span></p>
 
-        <p>🛠️ Desgaste: <span class="valor">R$ ${deprec.toFixed(2)}</span></p>
+        <p>🛠️ Desgaste: <span class="valor">R$ ${desgaste.toFixed(2)}</span></p>
 
         <p>➕ Extras: <span class="valor">R$ ${extra.toFixed(2)}</span></p>
 
@@ -211,9 +337,26 @@
 
         <p>📈 Lucro Aplicado: <span class="lucro">${lucro}%</span></p>
 
-        <p class="final">🏷️ Valor de Venda: <span class="lucro">R$ ${valorVenda.toFixed(2)}</span></p>
+        <p class="final">
+          🏷️ Valor de Venda:
+          <span class="lucro">R$ ${venda.toFixed(2)}</span>
+        </p>
+
       `;
+
+      memoria.push({
+        nome: nome,
+        total: total,
+        venda: venda
+      });
+
+      salvarMemoria();
+
+      atualizarTabela();
+
     }
+
+    atualizarTabela();
 
   </script>
 
